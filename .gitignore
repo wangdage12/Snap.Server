@@ -1,0 +1,11 @@
+﻿.vscode/
+
+# 公钥、私钥文件
+*.pem
+
+# python缓存文件
+__pycache__/
+*.pyc
+
+# 配置json文件
+config.json
