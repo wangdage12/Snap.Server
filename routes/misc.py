@@ -67,3 +67,20 @@ def mgnt_am_i_banned():
         "message": "OK",
         "data": {}
     })
+    
+# 获取额外的第三方注入工具
+@misc_bp.route('/tools', methods=['GET'])
+def get_tools():
+    """获取额外的第三方注入工具列表"""
+    tools = list(client.ht_server.tools.find({}))
+    
+    for tool in tools:
+        tool.pop('_id', None)
+    
+    logger.debug(f"Tools: {tools}")
+    
+    return jsonify({
+        "code": 0,
+        "message": "OK",
+        "data": tools
+    })
