@@ -71,7 +71,9 @@ def web_api_create_announcement():
         "LastUpdateTime": int(datetime.datetime.now().timestamp()),
         "MaxPresentVersion": data.get('MaxPresentVersion', None),
         "CreatedBy": str(request.current_user['_id']),
-        "CreatedAt": datetime.datetime.utcnow()
+        "CreatedAt": datetime.datetime.utcnow(),
+        # 发行版名称，用于给不同的发行版显示不同的公告，默认为空字符串，表示所有发行版
+        "Distribution": data.get('Distribution', '')
     }
     
     # 插入数据库
@@ -130,6 +132,8 @@ def web_api_update_announcement(announcement_id):
         update_data["Locale"] = data['Locale']
     if 'MaxPresentVersion' in data:
         update_data["MaxPresentVersion"] = data['MaxPresentVersion']
+    if 'Distribution' in data:
+        update_data["Distribution"] = data['Distribution']
     
     # 执行更新
     result = client.ht_server.announcement.update_one(
