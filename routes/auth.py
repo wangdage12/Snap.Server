@@ -102,7 +102,7 @@ def passport_register():
         "data": {
             "AccessToken": access_token,
             "RefreshToken": access_token,
-            "ExpiresIn": 3600
+            "ExpiresIn": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })
 
