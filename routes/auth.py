@@ -4,7 +4,7 @@ from services.auth_service import (
     decrypt_data, send_verification_email, verify_user_credentials, 
     create_user_account, get_user_by_id
 )
-from app.extensions import generate_code, logger
+from app.extensions import generate_code, logger , config_loader
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -148,7 +148,7 @@ def passport_login():
         "data": {
             "AccessToken": access_token,
             "RefreshToken": access_token,
-            "ExpiresIn": 3600
+            "ExpiresIn": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })
 
@@ -225,7 +225,7 @@ def passport_refresh_token():
         "data": {
             "AccessToken": access_token,
             "RefreshToken": access_token,
-            "ExpiresIn": 3600
+            "ExpiresIn": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })
 

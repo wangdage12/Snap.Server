@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from app.utils.jwt_utils import verify_token, create_token
 from services.auth_service import verify_user_credentials, get_users_with_search
 from app.decorators import require_maintainer_permission
-from app.extensions import generate_numeric_id, client, logger
+from app.extensions import generate_numeric_id, client, logger, config_loader
 
 web_api_bp = Blueprint("web_api", __name__)
 
@@ -36,7 +36,7 @@ def web_api_login():
         "message": "success",
         "data": {
             "access_token": access_token,
-            "expires_in": 3600
+            "expires_in": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })
 

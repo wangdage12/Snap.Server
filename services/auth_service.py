@@ -1,20 +1,23 @@
-import datetime
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import client, logger
 from app.config import Config
-
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+from app.config_loader import config_loader
+from datetime import timezone
+from zoneinfo import ZoneInfo
+import datetime
+import SendEmailTool
+import re
+import base64
 
 def decrypt_data(encrypted_data):
     """使用RSA私钥解密数据"""
     try:
-        from Crypto.Cipher import PKCS1_OAEP
-        from Crypto.PublicKey import RSA
-        import base64
-        from app.config_loader import config_loader
-        
         private_key_file = config_loader.RSA_PRIVATE_KEY_FILE
-        private_key = RSA.import_key(open(private_key_file).read())
+        with open(private_key_file, 'r') as f:
+            private_key = RSA.import_key(f.read())
         cipher = PKCS1_OAEP.new(private_key)
         decrypted_data = cipher.decrypt(base64.b64decode(encrypted_data))
         return decrypted_data.decode()
@@ -26,8 +29,6 @@ def decrypt_data(encrypted_data):
 def send_verification_email(email, code):
     """发送验证码邮件"""
     try:
-        import SendEmailTool
-        
         subject = "Snap Hutao 验证码"
         body = f"您的验证码是: {code}"
         
@@ -74,8 +75,9 @@ def create_user_account(email, password):
         "CreatedAt": datetime.datetime.utcnow(),
         "IsLicensedDeveloper": False,
         "IsMaintainer": False,
-        "GachaLogExpireAt": "2026-01-01T00:00:00Z",
-        "CdnExpireAt": "2026-01-01T00:00:00Z"
+        # 现在默认用户的上传权限不过期
+        "GachaLogExpireAt": "2099-01-01T00:00:00Z",
+        "CdnExpireAt": "2099-01-01T00:00:00Z"
     }
     
     result = client.ht_server.users.insert_one(new_user)
@@ -91,7 +93,8 @@ def get_user_by_id(user_id):
         if user:
             user['_id'] = str(user['_id'])
         return user
-    except:
+    except Exception as e:
+        logger.error(f"Error retrieving user by ID: {e}")
         return None
 
 
@@ -119,18 +122,6 @@ def get_users_with_search(query_text=""):
             or_conditions.append({
                 "_id": ObjectId(query_text)
             })
-        else:
-            # 允许部分 ObjectId 搜索（转字符串后匹配）
-            or_conditions.append({
-                "_id": {
-                    "$in": [
-                        u["_id"] for u in client.ht_server.users.find(
-                            {},
-                            {"_id": 1}
-                        ) if query_text.lower() in str(u["_id"]).lower()
-                    ]
-                }
-            })
 
         query = {"$or": or_conditions}
 
@@ -145,9 +136,6 @@ def get_users_with_search(query_text=""):
     users = list(users_map.values())
 
     # 数据格式化
-    from datetime import timezone
-    from zoneinfo import ZoneInfo
-    
     CST = ZoneInfo("Asia/Shanghai")
     
     for u in users:
