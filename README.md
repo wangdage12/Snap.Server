@@ -48,11 +48,17 @@ print("Keys generated.")
   },
   "EMAIL": {
     "GMAIL_USER": "wdgwdg889@gmail.com",
-    "APP_PASSWORD": ""
+    "APP_PASSWORD": "",
+    "APP_NAME": "WDG Snap Hutao",
+    "OFFICIAL_WEBSITE": "https://htserver.wdg.cloudns.ch/",
+    "SUBJECT": "WDG Snap Hutao 验证码"
   },
   "RSA": {
     "PRIVATE_KEY_FILE": "private.pem",
     "PUBLIC_KEY_FILE": "public.pem"
+  },
+  "VERIFICATION_CODE": {
+    "EXPIRE_MINUTES": 10
   },
   "LOGGING": {
     "LEVEL": "DEBUG",
@@ -76,8 +82,12 @@ print("Keys generated.")
 | JWT.EXPIRATION_HOURS | JWT过期时间（小时） |
 | EMAIL.GMAIL_USER | 用于发送验证邮件的Gmail账号 |
 | EMAIL.APP_PASSWORD | Gmail应用专用密码 |
+| EMAIL.APP_NAME | 应用名称，用于邮件显示 |
+| EMAIL.OFFICIAL_WEBSITE | 官方网站地址，用于邮件中的链接 |
+| EMAIL.SUBJECT | 验证邮件的主题 |
 | RSA.PRIVATE_KEY_FILE | RSA私钥文件路径 |
 | RSA.PUBLIC_KEY_FILE | RSA公钥文件路径 |
+| VERIFICATION_CODE.EXPIRE_MINUTES | 验证码过期时间（分钟） |
 | LOGGING.LEVEL | 日志记录级别，生产环境建议设置为INFO |
 | LOGGING.FORMAT | 日志记录格式 |
 

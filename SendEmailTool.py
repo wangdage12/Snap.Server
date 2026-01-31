@@ -9,12 +9,16 @@ app_password = config_loader.EMAIL_APP_PASSWORD
 
 to_email = ""
 
-def send_email(gmail_user, app_password, to_email, subject, body="这是一封测试邮件。"):
+def send_email(gmail_user, app_password, to_email, subject, body="这是一封测试邮件。", app_name=None, body_type="plain"):
     msg = MIMEMultipart()
-    msg["From"] = gmail_user
+    # 如果提供了 app_name，使用带显示名称的格式
+    if app_name:
+        msg["From"] = f"{app_name} <{gmail_user}>"
+    else:
+        msg["From"] = gmail_user
     msg["To"] = to_email
     msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
+    msg.attach(MIMEText(body, body_type))
 
     # Gmail SMTP 服务器
     server = smtplib.SMTP("smtp.gmail.com", 587)
