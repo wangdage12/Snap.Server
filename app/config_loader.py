@@ -95,6 +95,22 @@ class ConfigLoader:
     @property
     def LOGGING_FORMAT(self) -> str:
         return self.get('LOGGING.FORMAT', '%(asctime)s %(name)s %(levelname)s %(message)s')
+    
+    @property
+    def EMAIL_APP_NAME(self) -> str:
+        return self.get('EMAIL.APP_NAME', 'WDG Snap Hutao')
+    
+    @property
+    def EMAIL_OFFICIAL_WEBSITE(self) -> str:
+        return self.get('EMAIL.OFFICIAL_WEBSITE', 'https://htserver.wdg.cloudns.ch/')
+    
+    @property
+    def EMAIL_SUBJECT(self) -> str:
+        return self.get('EMAIL.SUBJECT', 'WDG Snap Hutao 验证码')
+    
+    @property
+    def VERIFICATION_CODE_EXPIRE_MINUTES(self) -> int:
+        return self.get('VERIFICATION_CODE.EXPIRE_MINUTES', 10)
 
 # 创建全局配置实例
 config_loader = ConfigLoader()

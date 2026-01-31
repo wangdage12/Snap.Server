@@ -6,3 +6,7 @@ class Config:
     MONGO_URI = config_loader.MONGO_URI
     TIMEZONE = config_loader.TIMEZONE
     ISTEST_MODE = config_loader.ISTEST_MODE
+    EMAIL_APP_NAME = config_loader.EMAIL_APP_NAME
+    EMAIL_OFFICIAL_WEBSITE = config_loader.EMAIL_OFFICIAL_WEBSITE
+    EMAIL_SUBJECT = config_loader.EMAIL_SUBJECT
+    VERIFICATION_CODE_EXPIRE_MINUTES = config_loader.VERIFICATION_CODE_EXPIRE_MINUTES

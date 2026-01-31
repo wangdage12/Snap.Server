@@ -2,9 +2,9 @@ from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import client, logger
 from app.config import Config
+from app.config_loader import config_loader
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
-from app.config_loader import config_loader
 from datetime import timezone
 from zoneinfo import ZoneInfo
 import datetime
@@ -26,20 +26,125 @@ def decrypt_data(encrypted_data):
         raise
 
 
-def send_verification_email(email, code):
-    """发送验证码邮件"""
+def send_verification_email(email, code, ACTION_NAME="注册", EXPIRE_MINUTES=None):
+    """发送验证码邮件，目前只有注册场景，后续再扩展其他场景"""
     try:
-        subject = "Snap Hutao 验证码"
-        body = f"您的验证码是: {code}"
-        
-        SendEmailTool.send_email(
-            SendEmailTool.gmail_user,
-            SendEmailTool.app_password,
-            email,
-            subject,
-            body
-        )
-        logger.info(f"Verification email sent to {email}")
+        subject = Config.EMAIL_SUBJECT
+        textbody = f"您的验证码是: {code}"
+        APP_NAME = Config.EMAIL_APP_NAME
+        OFFICIAL_WEBSITE = Config.EMAIL_OFFICIAL_WEBSITE
+        if EXPIRE_MINUTES is None:
+            EXPIRE_MINUTES = Config.VERIFICATION_CODE_EXPIRE_MINUTES
+        htmlbody = f"""
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>验证码邮件</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f6f7;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 0;">
+        <!-- 主体卡片 -->
+        <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:32px;">
+          
+          <!-- 应用名 -->
+          <tr>
+            <td align="center" style="font-size:22px;font-weight:bold;color:#333333;padding-bottom:16px;">
+              {APP_NAME}
+            </td>
+          </tr>
+
+          <!-- 操作提示 -->
+          <tr>
+            <td style="font-size:14px;color:#555555;padding-bottom:24px;text-align:center;">
+              你正在进行 <strong>{ACTION_NAME}</strong> 操作，请使用以下验证码完成验证：
+            </td>
+          </tr>
+
+          <!-- 验证码 -->
+          <tr>
+            <td align="center" style="padding:20px 0;">
+              <div style="
+                display:inline-block;
+                font-size:32px;
+                font-weight:bold;
+                letter-spacing:6px;
+                color:#2e86de;
+                padding:12px 24px;
+                border:1px dashed #2e86de;
+                border-radius:6px;
+              ">
+                {code}
+              </div>
+            </td>
+          </tr>
+
+          <!-- 有效期说明 -->
+          <tr>
+            <td style="font-size:13px;color:#888888;text-align:center;padding-top:16px;">
+              验证码有效期 {EXPIRE_MINUTES} 分钟，请勿泄露给他人。
+            </td>
+          </tr>
+
+          <!-- 分割线 -->
+          <tr>
+            <td style="padding:24px 0;">
+              <hr style="border:none;border-top:1px solid #eeeeee;">
+            </td>
+          </tr>
+
+          <!-- 底部信息 -->
+          <tr>
+            <td style="font-size:12px;color:#999999;text-align:center;line-height:1.6;">
+              本邮件由 {APP_NAME} 系统自动发送，请勿回复<br>
+              如非本人操作，请忽略本邮件
+            </td>
+          </tr>
+
+          <!-- 官网链接 -->
+          <tr>
+            <td align="center" style="padding-top:16px;">
+              <a href="{OFFICIAL_WEBSITE}" 
+                 style="font-size:12px;color:#2e86de;text-decoration:none;">
+                访问官网
+              </a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+        """
+        try:
+            SendEmailTool.send_email(
+                config_loader.EMAIL_GMAIL_USER,
+                config_loader.EMAIL_APP_PASSWORD,
+                email,
+                subject,
+                htmlbody,
+                app_name=APP_NAME,
+                body_type="html"
+            )
+            logger.info(f"HTML Verification email sent to {email}")
+        except Exception as e:
+            logger.error(f"Failed to send HTML verification email to {email}: {e}")
+            # 如果 HTML 邮件发送失败，尝试发送纯文本邮件
+            SendEmailTool.send_email(
+                config_loader.EMAIL_GMAIL_USER,
+                config_loader.EMAIL_APP_PASSWORD,
+                email,
+                subject,
+                textbody,
+                app_name=APP_NAME,
+                body_type="plain"
+            )
+            logger.info(f"Verification email sent to {email}")
         return True
     except Exception as e:
         logger.error(f"Failed to send email: {e}")

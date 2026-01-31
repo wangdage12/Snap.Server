@@ -1,10 +1,12 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from app.utils.jwt_utils import create_token, verify_token
 from services.auth_service import (
-    decrypt_data, send_verification_email, verify_user_credentials, 
+    decrypt_data, send_verification_email, verify_user_credentials,
     create_user_account, get_user_by_id
 )
+from services.verification_code_service import save_verification_code, verify_code
 from app.extensions import generate_code, logger , config_loader
+from app.config import Config
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -14,7 +16,7 @@ def passport_verify():
     """获取验证码"""
     data = request.get_json()
     encrypted_email = data.get('UserName', '')
-    
+
     try:
         decrypted_email = decrypt_data(encrypted_email)
         logger.debug(f"Decrypted email: {decrypted_email}")
@@ -25,12 +27,12 @@ def passport_verify():
             "message": f"Invalid encrypted email: {str(e)}",
             "data": None
         })
-    
+
     # 生成验证码
     code = generate_code(6)
-    session['verification_code'] = code
-    session['email'] = decrypted_email
-    
+    # 使用 MongoDB TTL 存储验证码
+    save_verification_code(decrypted_email, code, expire_minutes=Config.VERIFICATION_CODE_EXPIRE_MINUTES)
+
     # 发送邮件
     if send_verification_email(decrypted_email, code):
         return jsonify({
@@ -53,12 +55,12 @@ def passport_register():
     encrypted_email = data.get('UserName', '')
     encrypted_password = data.get('Password', '')
     encrypted_code = data.get('VerifyCode', '')
-    
+
     try:
         decrypted_email = decrypt_data(encrypted_email)
         decrypted_password = decrypt_data(encrypted_password)
         decrypted_code = decrypt_data(encrypted_code)
-        
+
         logger.debug(f"Decrypted registration data: email={decrypted_email}, code={decrypted_code}")
     except Exception as e:
         logger.warning(f"Decryption error: {e}")
@@ -67,17 +69,16 @@ def passport_register():
             "message": f"Invalid encrypted data: {str(e)}",
             "data": None
         }), 400
-    
-    # 验证验证码
-    if (session.get('verification_code') != decrypted_code or
-        session.get('email') != decrypted_email):
+
+    # 使用 MongoDB 验证验证码
+    if not verify_code(decrypted_email, decrypted_code):
         logger.warning("Invalid verification code")
         return jsonify({
             "retcode": 2,
             "message": "Invalid verification code",
             "data": None
         })
-    
+
     # 创建新用户
     new_user = create_user_account(decrypted_email, decrypted_password)
     if not new_user:
@@ -87,15 +88,11 @@ def passport_register():
             "message": "User already exists",
             "data": None
         })
-    
-    # 删除session中的验证码和邮箱
-    session.pop('verification_code', None)
-    session.pop('email', None)
-    
+
     # 创建token
     access_token = create_token(str(new_user['_id']))
     logger.info(f"User registered: {decrypted_email}")
-    
+
     return jsonify({
         "retcode": 0,
         "message": "success",
