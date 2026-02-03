@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.utils.jwt_utils import create_token, verify_token
+from app.utils.jwt_utils import create_token, verify_token, create_refresh_token
 from services.auth_service import (
     decrypt_data, send_verification_email, verify_user_credentials,
     create_user_account, get_user_by_id
@@ -91,6 +91,8 @@ def passport_register():
 
     # 创建token
     access_token = create_token(str(new_user['_id']))
+    # 刷新token
+    refresh_token = create_refresh_token(str(new_user['_id']))
     logger.info(f"User registered: {decrypted_email}")
 
     return jsonify({
@@ -98,7 +100,7 @@ def passport_register():
         "message": "success",
         "data": {
             "AccessToken": access_token,
-            "RefreshToken": access_token,
+            "RefreshToken": refresh_token,
             "ExpiresIn": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })
@@ -136,6 +138,7 @@ def passport_login():
     
     # 创建token
     access_token = create_token(str(user['_id']))
+    refresh_token = create_refresh_token(str(user['_id']))
     logger.info(f"User logged in: {decrypted_email}")
     
     return jsonify({
@@ -144,7 +147,7 @@ def passport_login():
         "l10nKey": "ServerPassportLoginSucceed",
         "data": {
             "AccessToken": access_token,
-            "RefreshToken": access_token,
+            "RefreshToken": refresh_token,
             "ExpiresIn": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })
@@ -214,6 +217,7 @@ def passport_refresh_token():
         })
     
     access_token = create_token(user_id)
+    refresh_token = create_refresh_token(user_id)
     logger.info(f"Token refreshed for user_id: {user_id}")
     
     return jsonify({
@@ -221,7 +225,7 @@ def passport_refresh_token():
         "message": "success",
         "data": {
             "AccessToken": access_token,
-            "RefreshToken": access_token,
+            "RefreshToken": refresh_token,
             "ExpiresIn": config_loader.JWT_EXPIRATION_HOURS * 3600
         }
     })

@@ -1,5 +1,17 @@
 from app.extensions import client, logger
 
+"""
+注意！记录中有两种类型，GachaType和QueryType(uigf_gacha_type)，GachaType多了一个400类型，其实就是QueryType的301类型，客户端传的end_ids是按QueryType来的，如果按照GachaType来筛选会多出400类型的记录
+映射关系
+
+| `uigf_gacha_type` | `gacha_type`   |
+|-------------------|----------------|
+| `100`             | `100`          |
+| `200`             | `200`          |
+| `301`             | `301` or `400` |
+| `302`             | `302`          |
+| `500`             | `500`          |
+"""
 
 def get_gacha_log_entries(user_id):
     """获取用户的祈愿记录条目列表"""
@@ -40,6 +52,9 @@ def get_gacha_log_end_ids(user_id, uid):
         item_id = item.get('Id', 0)
         if gacha_type in end_ids:
             end_ids[gacha_type] = max(end_ids[gacha_type], item_id)
+    
+    # 400类型对应301类型
+    end_ids["400"] = end_ids["301"]
     
     return end_ids
 
@@ -82,6 +97,11 @@ def retrieve_gacha_log(user_id, uid, end_ids):
     
     # 筛选出比end_ids更旧的记录
     filtered_items = []
+    
+    # 需要将end_ids的key从QueryType转换为GachaType，给400赋值为301的值即可
+    if "301" in end_ids:
+        end_ids["400"] = end_ids["301"]
+    
     for item in gacha_log['data']:
         gacha_type = str(item.get('GachaType', ''))
         item_id = item.get('Id', 0)

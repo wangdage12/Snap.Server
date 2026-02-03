@@ -119,6 +119,7 @@ def gacha_log_retrieve():
     
     filtered_items = retrieve_gacha_log(user_id, uid, end_ids)
     logger.info(f"Gacha log retrieved for user_id: {user_id}, uid: {uid}, items count: {len(filtered_items)}")
+    logger.debug(f"end_ids: {end_ids}")
     
     return jsonify({
         "retcode": 0,
