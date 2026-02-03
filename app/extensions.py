@@ -26,10 +26,10 @@ def init_mongo(uri: str, test_mode=False):
         logger.error(f"MongoDB connection failed: {e}")
         raise
 
-def generate_code(length=6):
+def generate_code(length=6) -> str:
     """生成数字验证码"""
     return ''.join(secrets.choice('0123456789') for _ in range(length))
 
-def generate_numeric_id(length=8):
+def generate_numeric_id(length=8) -> str:
     """生成数字ID"""
     return ''.join(secrets.choice(string.digits) for _ in range(length))

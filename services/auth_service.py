@@ -12,7 +12,7 @@ import SendEmailTool
 import re
 import base64
 
-def decrypt_data(encrypted_data):
+def decrypt_data(encrypted_data: str) -> str:
     """使用RSA私钥解密数据"""
     try:
         private_key_file = config_loader.RSA_PRIVATE_KEY_FILE
@@ -26,7 +26,7 @@ def decrypt_data(encrypted_data):
         raise
 
 
-def send_verification_email(email, code, ACTION_NAME="注册", EXPIRE_MINUTES=None):
+def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_MINUTES=None) -> bool:
     """发送验证码邮件，目前只有注册场景，后续再扩展其他场景"""
     try:
         subject = Config.EMAIL_SUBJECT
@@ -151,7 +151,7 @@ def send_verification_email(email, code, ACTION_NAME="注册", EXPIRE_MINUTES=No
         return False
 
 
-def verify_user_credentials(email, password):
+def verify_user_credentials(email: str, password: str) -> dict | None:
     """验证用户凭据"""
     user = client.ht_server.users.find_one({"email": email})
     
@@ -161,7 +161,7 @@ def verify_user_credentials(email, password):
     return user
 
 
-def create_user_account(email, password):
+def create_user_account(email: str, password: str) -> dict | None:
     """创建新用户账户"""
     # 检查用户是否已存在
     existing_user = client.ht_server.users.find_one({"email": email})
@@ -191,7 +191,7 @@ def create_user_account(email, password):
     return new_user
 
 
-def get_user_by_id(user_id):
+def get_user_by_id(user_id: str) -> dict | None:
     """根据ID获取用户信息"""
     try:
         user = client.ht_server.users.find_one({"_id": ObjectId(user_id)})
@@ -203,7 +203,7 @@ def get_user_by_id(user_id):
         return None
 
 
-def get_users_with_search(query_text=""):
+def get_users_with_search(query_text="") -> list:
     """获取用户列表，支持搜索"""
     import re
     

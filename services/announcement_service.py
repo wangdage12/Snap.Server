@@ -2,6 +2,12 @@ from app.extensions import client, logger
 from app.config import Config
 
 def get_announcements(request_data: list):
+    """
+    获取公告列表，过滤掉用户已关闭的公告
+    
+    :param request_data: 用户已关闭的公告ID列表
+    :type request_data: list
+    """
     if Config.ISTEST_MODE:
         return []
     # 记录请求体到日志，请求体中是用户已关闭的公告ID列表

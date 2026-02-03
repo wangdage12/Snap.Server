@@ -22,7 +22,7 @@ class ConfigLoader:
         
         return self._config
     
-    def get(self, key: str, default=None):
+    def get(self, key: str, default=None) -> Any:
         """获取配置值，支持点号分隔的嵌套键"""
         config = self.load_config()
         keys = key.split('.')
