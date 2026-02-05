@@ -15,12 +15,14 @@ def create_app():
     from routes.gacha_log import gacha_log_bp
     from routes.web_api import web_api_bp
     from routes.misc import misc_bp
+    from routes.download_resource import download_resource_bp
 
     app.register_blueprint(announcement_bp, url_prefix="/Announcement")
     app.register_blueprint(auth_bp)
     app.register_blueprint(gacha_log_bp)
     app.register_blueprint(web_api_bp)
     app.register_blueprint(misc_bp)
+    app.register_blueprint(download_resource_bp)
 
     # CORS
     @app.after_request
