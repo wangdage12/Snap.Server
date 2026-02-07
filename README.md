@@ -3,6 +3,15 @@ Snap.Hutao新后端API
 
 ## 部署方法
 
+> **资源和环境要求**  
+> 服务器硬件：
+> 最低1核CPU，1GB内存
+>
+> 运行环境：  
+> `Windows10`及以上、`Windows Server 2019`及以上、`Linux`  
+> `Python3.12`及以上  
+> `MongoDB`
+
 ### 在服务器生成RSA密钥
 
 执行以下代码在根目录生成密钥：
