@@ -15,6 +15,7 @@ def create_download_resource(data):
         - file_size: 文件大小 (可选)
         - file_hash: 文件哈希 (可选)
         - is_active: 是否激活 (可选，默认为True)
+        - is_test: 是否为测试版本 (可选，默认为False)
     :return: 创建的资源ID或None
     """
     try:
@@ -26,6 +27,7 @@ def create_download_resource(data):
             "file_size": data.get('file_size'),
             "file_hash": data.get('file_hash'),
             "is_active": data.get('is_active', True),
+            "is_test": data.get('is_test', False),
             "created_at": datetime.datetime.utcnow(),
             "created_by": data.get('created_by')
         }
@@ -38,12 +40,13 @@ def create_download_resource(data):
         return None
 
 
-def get_download_resources(package_type=None, is_active=None):
+def get_download_resources(package_type=None, is_active=None, is_test=None):
     """
     获取下载资源列表
     
     :param package_type: 包类型过滤 (msi/msix)，None表示获取所有
     :param is_active: 是否激活过滤，None表示获取所有
+    :param is_test: 是否为测试版本过滤，None表示获取所有
     :return: 资源列表
     """
     try:
@@ -52,6 +55,15 @@ def get_download_resources(package_type=None, is_active=None):
             query['package_type'] = package_type
         if is_active is not None:
             query['is_active'] = is_active
+        if is_test is not None:
+            # 如果查询非测试版本，需要包含 is_test=false 或 is_test 字段不存在的记录
+            if is_test:
+                query['is_test'] = True
+            else:
+                query['$or'] = [
+                    {'is_test': False},
+                    {'is_test': {'$exists': False}}
+                ]
         
         resources = list(client.ht_server.download_resources.find(query, sort=[("created_at", -1)]))
         
@@ -61,6 +73,9 @@ def get_download_resources(package_type=None, is_active=None):
             r = dict(r)
             # 转换_id为字符串并存为id字段
             r['id'] = str(r.pop('_id'))
+            # 如果 is_test 字段不存在，默认设置为 False
+            if 'is_test' not in r:
+                r['is_test'] = False
             # 转换datetime为配置时区的ISO格式字符串
             if 'created_at' in r and isinstance(r['created_at'], datetime.datetime):
                 dt = r['created_at'].replace(tzinfo=datetime.timezone.utc)
@@ -92,6 +107,9 @@ def get_download_resource_by_id(resource_id):
         if resource:
             resource = dict(resource)
             resource.pop('_id', None)
+            # 如果 is_test 字段不存在，默认设置为 False
+            if 'is_test' not in resource:
+                resource['is_test'] = False
             # 转换datetime为配置时区的ISO格式字符串
             if 'created_at' in resource and isinstance(resource['created_at'], datetime.datetime):
                 dt = resource['created_at'].replace(tzinfo=datetime.timezone.utc)
@@ -136,6 +154,8 @@ def update_download_resource(resource_id, data):
             update_data['file_hash'] = data['file_hash']
         if 'is_active' in data:
             update_data['is_active'] = data['is_active']
+        if 'is_test' in data:
+            update_data['is_test'] = data['is_test']
         if 'updated_by' in data:
             update_data['updated_by'] = data['updated_by']
         
@@ -173,15 +193,24 @@ def delete_download_resource(resource_id):
         return False
 
 
-def get_latest_version(package_type=None):
+def get_latest_version(package_type=None, is_test=False):
     """
     获取最新版本
     
     :param package_type: 包类型 (msi/msix)，None表示获取所有类型的最新版本
+    :param is_test: 是否包含测试版本，默认为False（只返回正式版本）
     :return: 资源对象或None
     """
     try:
         query = {"is_active": True}
+        if not is_test:
+            # 如果查询非测试版本，需要包含 is_test=false 或 is_test 字段不存在的记录
+            query['$or'] = [
+                {'is_test': False},
+                {'is_test': {'$exists': False}}
+            ]
+        else:
+            query['is_test'] = True
         if package_type:
             query['package_type'] = package_type
         
@@ -193,6 +222,9 @@ def get_latest_version(package_type=None):
         if resource:
             resource = dict(resource)
             resource.pop('_id', None)
+            # 如果 is_test 字段不存在，默认设置为 False
+            if 'is_test' not in resource:
+                resource['is_test'] = False
             # 转换datetime为配置时区的ISO格式字符串
             if 'created_at' in resource and isinstance(resource['created_at'], datetime.datetime):
                 dt = resource['created_at'].replace(tzinfo=datetime.timezone.utc)

@@ -21,8 +21,10 @@ def get_public_download_resources():
     获取下载资源列表（公开API）
     可选查询参数：
     - package_type: 包类型 (msi/msix)，不传则返回所有
+    - is_test: 是否包含测试版本 (true/false)，不传则只返回正式版本
     """
     package_type = request.args.get('package_type')
+    is_test_str = request.args.get('is_test')
     
     # 验证package_type参数
     if package_type and package_type not in ['msi', 'msix']:
@@ -32,8 +34,13 @@ def get_public_download_resources():
             "data": None
         }), 400
     
+    # 处理is_test参数，默认只返回正式版本
+    is_test = False
+    if is_test_str is not None:
+        is_test = is_test_str.lower() == 'true'
+    
     # 只返回激活的资源
-    resources = get_download_resources(package_type=package_type, is_active=True)
+    resources = get_download_resources(package_type=package_type, is_active=True, is_test=is_test)
     
     return jsonify({
         "code": 0,
@@ -48,8 +55,10 @@ def get_latest_download_resource():
     获取最新版本（公开API）
     可选查询参数：
     - package_type: 包类型 (msi/msix)，不传则返回最新的任意类型
+    - is_test: 是否包含测试版本 (true/false)，不传则只返回正式版本
     """
     package_type = request.args.get('package_type')
+    is_test_str = request.args.get('is_test')
     
     # 验证package_type参数
     if package_type and package_type not in ['msi', 'msix']:
@@ -59,7 +68,12 @@ def get_latest_download_resource():
             "data": None
         }), 400
     
-    resource = get_latest_version(package_type=package_type)
+    # 处理is_test参数
+    is_test = False
+    if is_test_str is not None:
+        is_test = is_test_str.lower() == 'true'
+    
+    resource = get_latest_version(package_type=package_type, is_test=is_test)
     
     if resource:
         return jsonify({
@@ -130,6 +144,7 @@ def web_api_get_download_resources():
     """获取下载资源列表（管理端，包含所有资源，包括未激活的）"""
     package_type = request.args.get('package_type')
     is_active_str = request.args.get('is_active')
+    is_test_str = request.args.get('is_test')
     
     # 验证package_type参数
     if package_type and package_type not in ['msi', 'msix']:
@@ -144,7 +159,12 @@ def web_api_get_download_resources():
     if is_active_str is not None:
         is_active = is_active_str.lower() == 'true'
     
-    resources = get_download_resources(package_type=package_type, is_active=is_active)
+    # 处理is_test参数
+    is_test = None
+    if is_test_str is not None:
+        is_test = is_test_str.lower() == 'true'
+    
+    resources = get_download_resources(package_type=package_type, is_active=is_active, is_test=is_test)
     
     return jsonify({
         "code": 0,

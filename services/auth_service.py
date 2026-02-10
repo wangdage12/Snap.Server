@@ -203,32 +203,82 @@ def get_user_by_id(user_id: str) -> dict | None:
         return None
 
 
-def get_users_with_search(query_text="") -> list:
-    """获取用户列表，支持搜索"""
+def get_users_with_search(query_text="", role=None, email=None, username=None, id=None, is_licensed=None) -> list:
+    """获取用户列表，支持多种筛选条件"""
     import re
     
     # 构建查询条件
     query = {}
-    or_conditions = []
+    and_conditions = []
 
+    # 通用搜索（q 参数）- 匹配用户名、邮箱、ID
     if query_text:
+        or_conditions = []
         # 用户名模糊搜索
         or_conditions.append({
             "UserName": {"$regex": re.escape(query_text), "$options": "i"}
         })
-
         # 邮箱模糊搜索
         or_conditions.append({
             "email": {"$regex": re.escape(query_text), "$options": "i"}
         })
-
         # _id 搜索（支持完整或前缀）
         if ObjectId.is_valid(query_text):
             or_conditions.append({
                 "_id": ObjectId(query_text)
             })
+        and_conditions.append({"$or": or_conditions})
 
-        query = {"$or": or_conditions}
+    # 按角色筛选
+    if role:
+        if role == "maintainer":
+            and_conditions.append({"IsMaintainer": True})
+        elif role == "developer":
+            and_conditions.append({"IsLicensedDeveloper": True})
+        elif role == "user":
+            # user 表示既不是 maintainer 也不是 developer
+            and_conditions.append({
+                "$and": [
+                    {"IsMaintainer": {"$ne": True}},
+                    {"IsLicensedDeveloper": {"$ne": True}}
+                ]
+            })
+
+    # 按邮箱筛选（支持模糊匹配）
+    if email:
+        and_conditions.append({
+            "email": {"$regex": re.escape(email), "$options": "i"}
+        })
+
+    # 按用户名筛选（支持模糊匹配）
+    if username:
+        and_conditions.append({
+            "UserName": {"$regex": re.escape(username), "$options": "i"}
+        })
+
+    # 按用户ID筛选（支持模糊匹配）
+    if id:
+        if ObjectId.is_valid(id):
+            and_conditions.append({"_id": ObjectId(id)})
+        else:
+            # 如果不是有效的 ObjectId，尝试匹配字符串形式的 _id
+            and_conditions.append({
+                "_id": {"$regex": re.escape(id), "$options": "i"}
+            })
+
+    # 按状态筛选
+    if is_licensed:
+        if is_licensed == "licensed":
+            and_conditions.append({"IsLicensedDeveloper": True})
+        elif is_licensed == "not-licensed":
+            and_conditions.append({"IsLicensedDeveloper": False})
+
+    # 构建 AND 查询
+    if and_conditions:
+        if len(and_conditions) == 1:
+            query = and_conditions[0]
+        else:
+            query = {"$and": and_conditions}
 
     # 查询数据库（排除密码）
     cursor = client.ht_server.users.find(query, {"password": 0})
