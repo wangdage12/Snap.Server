@@ -239,9 +239,15 @@ def web_api_get_users():
             "data": None
         }), 403
 
-    # 获取搜索参数
+    # 获取查询参数
     q = request.args.get("q", "").strip()
-    users = get_users_with_search(q)
+    role = request.args.get("role", "").strip() if request.args.get("role") else None
+    email = request.args.get("email", "").strip() if request.args.get("email") else None
+    username = request.args.get("username", "").strip() if request.args.get("username") else None
+    id_param = request.args.get("id", "").strip() if request.args.get("id") else None
+    is_licensed = request.args.get("is", "").strip() if request.args.get("is") else None
+
+    users = get_users_with_search(q, role, email, username, id_param, is_licensed)
 
     return jsonify({
         "code": 0,
