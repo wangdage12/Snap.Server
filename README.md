@@ -120,11 +120,26 @@ pip install -r requirements.txt && python -m gunicorn run:app --bind 0.0.0.0:522
 
 请根据服务器性能调整`--workers`和`--threads`参数。
 
-### API文档
+### API文档和官方开放平台
 
-API文档可以在该地址访问：
+**API文档可以在该地址访问：**
 
 https://rdgm3wrj7r.apifox.cn/
+
+> 项目官方API和文件资源服务、仓库镜像为各开源项目免费提供
+
+本项目官方API地址：https://htserver.wdg.cloudns.ch/api/
+
+<img width="901" height="522" alt="服务拓补结构" src="https://github.com/user-attachments/assets/9cd2f0d5-372e-46b6-b64b-643df661b445" />
+
+我们的项目官方服务采用多台服务器，其中日本的主服务器用来提供所有基础服务，甘肃的自建服务器提供加速和负载均衡，以确保服务稳定
+
+元数据仓库镜像可以随时调用获取元数据仓库API`/git-repository/all`得到  
+由于Git仓库几乎无法被CDN缓存，频繁拉取镜像仓库会对服务器造成压力，请各位在使用量较大的情况下自建仓库镜像
+
+甘肃服务器只能使用ipv6访问，同时比较不稳定，只能用于加速，不要将它直接作为主要服务使用
+
+甘肃服务器2为备用服务器，计划在用户量较大时作为API（以负载均衡的方式提供，不在极端情况下不采用）和仓库镜像使用
 
 ### 注意事项
 
