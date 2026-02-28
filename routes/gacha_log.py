@@ -29,7 +29,7 @@ def gacha_log_entries():
         logger.warning("Invalid or expired token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired token",
+            "message": "登录无效，请重新登录\nPlease login again",
             "data": None
         }), 401
     
@@ -54,7 +54,7 @@ def gacha_log_end_ids():
         logger.warning("Invalid or expired token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired token",
+            "message": "登录无效，请重新登录\nPlease login again",
             "data": None
         }), 401
     
@@ -81,7 +81,7 @@ def gacha_log_upload():
         logger.warning("Invalid or expired token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired token",
+            "message": "登录无效，请重新登录\nPlease login again",
             "data": None
         }), 401
     
@@ -109,7 +109,7 @@ def gacha_log_retrieve():
         logger.warning("Invalid or expired token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired token",
+            "message": "登录无效，请重新登录\nPlease login again",
             "data": None
         }), 401
     
@@ -123,7 +123,7 @@ def gacha_log_retrieve():
     
     return jsonify({
         "retcode": 0,
-        "message": f"success, retrieved {len(filtered_items)} items",
+        "message": f"获取成功，共获取 {len(filtered_items)} 条记录\nRetrieval successful, {len(filtered_items)} records retrieved",
         "data": filtered_items
     })
 
@@ -138,7 +138,7 @@ def gacha_log_delete():
         logger.warning("Invalid or expired token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired token",
+            "message": "登录无效，请重新登录\nPlease login again",
             "data": None
         }), 401
     
@@ -149,13 +149,13 @@ def gacha_log_delete():
         logger.info(f"Gacha log deleted for user_id: {user_id}, uid: {uid}")
         return jsonify({
             "retcode": 0,
-            "message": "success, gacha log deleted",
+            "message": "成功删除祈愿记录\nGacha log deleted successfully",
             "data": None
         })
     else:
         logger.info(f"No gacha log found to delete for user_id: {user_id}, uid: {uid}")
         return jsonify({
             "retcode": 2,
-            "message": "no gacha log found to delete",
+            "message": "未找到祈愿记录以供删除\nNo gacha log found to delete",
             "data": None
         })

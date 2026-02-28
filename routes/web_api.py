@@ -23,7 +23,7 @@ def web_api_login():
         logger.warning(f"Invalid web login attempt for email: {email}")
         return jsonify({
             "code": 1,
-            "message": "Invalid email or password",
+            "message": "邮箱或密码无效\nInvalid email or password",
             "data": None
         })
     
@@ -53,7 +53,7 @@ def web_api_create_announcement():
     if not all(k in data for k in ['Title', 'Content', 'Locale']):
         return jsonify({
             "code": 1,
-            "message": "Missing required fields: Title, Content, Locale",
+            "message": "创建公告失败，缺少必需字段：Title, Content, Locale\nFailed to create announcement, missing required fields: Title, Content, Locale",
             "data": None
         }), 400
     
@@ -83,7 +83,7 @@ def web_api_create_announcement():
         logger.info(f"Announcement created with ID: {announcement_id} by user: {request.current_user['email']}")
         return jsonify({
             "code": 0,
-            "message": "Announcement created successfully",
+            "message": "公告创建成功\nAnnouncement created successfully",
             "data": {
                 "Id": announcement_id
             }
@@ -92,7 +92,7 @@ def web_api_create_announcement():
         logger.error("Failed to create announcement")
         return jsonify({
             "code": 2,
-            "message": "Failed to create announcement",
+            "message": "创建公告失败\nFailed to create announcement",
             "data": None
         }), 500
 
@@ -108,7 +108,7 @@ def web_api_update_announcement(announcement_id):
     if not existing_announcement:
         return jsonify({
             "code": 1,
-            "message": "Announcement not found",
+            "message": "公告不存在\nAnnouncement not found",
             "data": None
         }), 404
     
@@ -145,14 +145,14 @@ def web_api_update_announcement(announcement_id):
         logger.info(f"Announcement {announcement_id} updated by user: {request.current_user['email']}")
         return jsonify({
             "code": 0,
-            "message": "Announcement updated successfully",
+            "message": "公告更新成功\nAnnouncement updated successfully",
             "data": None
         })
     else:
         logger.warning(f"No changes made to announcement {announcement_id}")
         return jsonify({
             "code": 2,
-            "message": "No changes made",
+            "message": "公告未发生更改\nNo changes made to announcement",
             "data": None
         })
 
@@ -166,7 +166,7 @@ def web_api_delete_announcement(announcement_id):
     if not existing_announcement:
         return jsonify({
             "code": 1,
-            "message": "Announcement not found",
+            "message": "公告不存在\nAnnouncement not found",
             "data": None
         }), 404
     
@@ -177,14 +177,14 @@ def web_api_delete_announcement(announcement_id):
         logger.info(f"Announcement {announcement_id} deleted by user: {request.current_user['email']}")
         return jsonify({
             "code": 0,
-            "message": "Announcement deleted successfully",
+            "message": "公告删除成功\nAnnouncement deleted successfully",
             "data": None
         })
     else:
         logger.error(f"Failed to delete announcement {announcement_id}")
         return jsonify({
             "code": 2,
-            "message": "Failed to delete announcement",
+            "message": "删除公告失败\nFailed to delete announcement",
             "data": None
         }), 500
 
@@ -199,7 +199,7 @@ def web_api_get_announcement(announcement_id):
     if not announcement:
         return jsonify({
             "code": 1,
-            "message": "Announcement not found",
+            "message": "公告不存在\nAnnouncement not found",
             "data": None
         }), 404
     
@@ -224,7 +224,7 @@ def web_api_get_users():
         logger.warning("Invalid or expired token")
         return jsonify({
             "code": 1,
-            "message": "Invalid or expired token",
+            "message": "登录无效，请重新登录\nInvalid or expired token",
             "data": None
         }), 401
 
@@ -235,7 +235,7 @@ def web_api_get_users():
         logger.debug(f"User details: {user}")
         return jsonify({
             "code": 2,
-            "message": "Insufficient permissions",
+            "message": "权限不足\nInsufficient permissions",
             "data": None
         }), 403
 
