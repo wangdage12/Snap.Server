@@ -24,7 +24,7 @@ def passport_verify():
         logger.error(f"Decryption error: {e}")
         return jsonify({
             "retcode": 1,
-            "message": f"Invalid encrypted email: {str(e)}",
+            "message": f"解密邮件地址失败: {str(e)}",
             "data": None
         })
 
@@ -43,7 +43,7 @@ def passport_verify():
     else:
         return jsonify({
             "retcode": 1,
-            "message": "Failed to send email",
+            "message": "发送验证码邮件失败\nsend verification email failed",
             "data": None
         }), 500
 
@@ -66,7 +66,7 @@ def passport_register():
         logger.warning(f"Decryption error: {e}")
         return jsonify({
             "retcode": 1,
-            "message": f"Invalid encrypted data: {str(e)}",
+            "message": f"解密注册数据失败: {str(e)}",
             "data": None
         }), 400
 
@@ -75,7 +75,7 @@ def passport_register():
         logger.warning("Invalid verification code")
         return jsonify({
             "retcode": 2,
-            "message": "Invalid verification code",
+            "message": "验证码无效或已过期\nInvalid or expired verification code",
             "data": None
         })
 
@@ -85,7 +85,7 @@ def passport_register():
         logger.warning(f"User already exists: {decrypted_email}")
         return jsonify({
             "retcode": 3,
-            "message": "User already exists",
+            "message": "用户已存在\nUser already exists",
             "data": None
         })
 
@@ -122,7 +122,7 @@ def passport_login():
         logger.warning(f"Decryption error: {e}")
         return jsonify({
             "retcode": 1,
-            "message": f"Invalid encrypted data: {str(e)}",
+            "message": f"解密登录数据失败: {str(e)}",
             "data": None
         }), 400
     
@@ -132,7 +132,7 @@ def passport_login():
         logger.warning(f"Invalid login attempt for email: {decrypted_email}")
         return jsonify({
             "retcode": 2,
-            "message": "Invalid email or password",
+            "message": "邮箱或密码无效\nInvalid email or password",
             "data": None
         })
     
@@ -163,7 +163,7 @@ def passport_userinfo():
         logger.warning("Invalid or expired token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired token",
+            "message": "登录云服务失败，token无效或已过期\nLogin failed, invalid or expired token",
             "data": None
         }), 401
     
@@ -172,7 +172,7 @@ def passport_userinfo():
         logger.warning(f"User not found: {user_id}")
         return jsonify({
             "retcode": 2,
-            "message": "User not found",
+            "message": "用户不存在\nUser not found",
             "data": None
         })
     
@@ -212,7 +212,7 @@ def passport_refresh_token():
         logger.warning("Invalid or expired refresh token")
         return jsonify({
             "retcode": 1,
-            "message": "Invalid or expired refresh token",
+            "message": "刷新云服务token失败，刷新token无效或已过期，请重新登录云服务\nLogin failed, invalid or expired refresh token",
             "data": None
         })
     

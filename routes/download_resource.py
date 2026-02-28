@@ -133,7 +133,7 @@ def web_api_create_download_resource():
         logger.error("Failed to create download resource")
         return jsonify({
             "code": 2,
-            "message": "Failed to create download resource",
+            "message": "创建下载资源失败\nFailed to create download resource",
             "data": None
         }), 500
 
@@ -233,7 +233,7 @@ def web_api_update_download_resource(resource_id):
         logger.error(f"Failed to update download resource {resource_id}")
         return jsonify({
             "code": 2,
-            "message": "Failed to update download resource",
+            "message": "更新下载资源失败\nFailed to update download resource",
             "data": None
         }), 500
 

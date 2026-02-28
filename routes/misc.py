@@ -76,6 +76,13 @@ def get_tools():
     
     for tool in tools:
         tool.pop('_id', None)
+        # 添加默认字段，用于客户端解压、确定运行exe和版本更新检查
+        if 'is_compressed' not in tool:
+            tool['is_compressed'] = False
+        if 'version' not in tool:
+            tool['version'] = '1.0.0'
+        if 'main_exe' not in tool:
+            tool['main_exe'] = None
     
     logger.debug(f"Tools: {tools}")
     
