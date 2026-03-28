@@ -1,4 +1,5 @@
 from bson import ObjectId
+from pymongo import ReturnDocument
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import client, logger
 from app.config import Config
@@ -26,15 +27,24 @@ def decrypt_data(encrypted_data: str) -> str:
         raise
 
 
-def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_MINUTES=None) -> bool:
-    """发送验证码邮件，目前只有注册场景，后续再扩展其他场景"""
+def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_MINUTES=None, REQUEST_TYPE=None, TYPE_LABEL=None) -> bool:
+    """发送验证码邮件，并在邮件中标注验证码类型。"""
     try:
         subject = Config.EMAIL_SUBJECT
-        textbody = f"您的验证码是: {code}"
         APP_NAME = Config.EMAIL_APP_NAME
         OFFICIAL_WEBSITE = Config.EMAIL_OFFICIAL_WEBSITE
         if EXPIRE_MINUTES is None:
             EXPIRE_MINUTES = Config.VERIFICATION_CODE_EXPIRE_MINUTES
+        if TYPE_LABEL is None:
+            TYPE_LABEL = ACTION_NAME
+
+        type_message = TYPE_LABEL if REQUEST_TYPE is None else f"{TYPE_LABEL}（类型值：{REQUEST_TYPE}）"
+        textbody = (
+            f"您的验证码是: {code}\n"
+            f"当前操作: {ACTION_NAME}\n"
+            f"验证码类型: {type_message}\n"
+            f"验证码有效期 {EXPIRE_MINUTES} 分钟，请勿泄露给他人。"
+        )
         htmlbody = f"""
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -46,80 +56,58 @@ def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td align="center" style="padding:40px 0;">
-        <!-- 主体卡片 -->
         <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:32px;">
-          
-          <!-- 应用名 -->
           <tr>
             <td align="center" style="font-size:22px;font-weight:bold;color:#333333;padding-bottom:16px;">
               {APP_NAME}
             </td>
           </tr>
-
-          <!-- 操作提示 -->
           <tr>
-            <td style="font-size:14px;color:#555555;padding-bottom:24px;text-align:center;">
+            <td style="font-size:14px;color:#555555;padding-bottom:12px;text-align:center;">
               你正在进行 <strong>{ACTION_NAME}</strong> 操作，请使用以下验证码完成验证：
             </td>
           </tr>
-
-          <!-- 验证码 -->
+          <tr>
+            <td style="font-size:13px;color:#666666;padding-bottom:20px;text-align:center;">
+              验证码类型：<strong>{type_message}</strong>
+            </td>
+          </tr>
           <tr>
             <td align="center" style="padding:20px 0;">
-              <div style="
-                display:inline-block;
-                font-size:32px;
-                font-weight:bold;
-                letter-spacing:6px;
-                color:#2e86de;
-                padding:12px 24px;
-                border:1px dashed #2e86de;
-                border-radius:6px;
-              ">
+              <div style="display:inline-block;font-size:32px;font-weight:bold;letter-spacing:6px;color:#2e86de;padding:12px 24px;border:1px dashed #2e86de;border-radius:6px;">
                 {code}
               </div>
             </td>
           </tr>
-
-          <!-- 有效期说明 -->
           <tr>
             <td style="font-size:13px;color:#888888;text-align:center;padding-top:16px;">
               验证码有效期 {EXPIRE_MINUTES} 分钟，请勿泄露给他人。
             </td>
           </tr>
-
-          <!-- 分割线 -->
           <tr>
             <td style="padding:24px 0;">
               <hr style="border:none;border-top:1px solid #eeeeee;">
             </td>
           </tr>
-
-          <!-- 底部信息 -->
           <tr>
             <td style="font-size:12px;color:#999999;text-align:center;line-height:1.6;">
               本邮件由 {APP_NAME} 系统自动发送，请勿回复<br>
               如非本人操作，请忽略本邮件
             </td>
           </tr>
-
-          <!-- 官网链接 -->
           <tr>
             <td align="center" style="padding-top:16px;">
-              <a href="{OFFICIAL_WEBSITE}" 
-                 style="font-size:12px;color:#2e86de;text-decoration:none;">
+              <a href="{OFFICIAL_WEBSITE}" style="font-size:12px;color:#2e86de;text-decoration:none;">
                 访问官网
               </a>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
   </table>
 </body>
 </html>
-
         """
         try:
             SendEmailTool.send_email(
@@ -131,10 +119,9 @@ def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_
                 app_name=APP_NAME,
                 body_type="html"
             )
-            logger.info(f"HTML Verification email sent to {email}")
+            logger.info(f"HTML verification email sent to {email}, request_type: {REQUEST_TYPE}")
         except Exception as e:
             logger.error(f"Failed to send HTML verification email to {email}: {e}")
-            # 如果 HTML 邮件发送失败，尝试发送纯文本邮件
             SendEmailTool.send_email(
                 config_loader.EMAIL_GMAIL_USER,
                 config_loader.EMAIL_APP_PASSWORD,
@@ -144,7 +131,7 @@ def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_
                 app_name=APP_NAME,
                 body_type="plain"
             )
-            logger.info(f"Verification email sent to {email}")
+            logger.info(f"Verification email sent to {email}, request_type: {REQUEST_TYPE}")
         return True
     except Exception as e:
         logger.error(f"Failed to send email: {e}")
@@ -201,6 +188,67 @@ def get_user_by_id(user_id: str) -> dict | None:
     except Exception as e:
         logger.error(f"Error retrieving user by ID: {e}")
         return None
+
+
+def get_user_by_email(email: str) -> dict | None:
+    """根据邮箱获取用户信息"""
+    return client.ht_server.users.find_one({"email": email})
+
+
+def update_user_password(email: str, password: str) -> dict | None:
+    """根据邮箱更新用户密码并返回更新后的用户信息"""
+    hashed_password = generate_password_hash(password)
+    return client.ht_server.users.find_one_and_update(
+        {"email": email},
+        {"$set": {"password": hashed_password}},
+        return_document=ReturnDocument.AFTER
+    )
+
+
+def update_user_email(email: str, new_email: str) -> tuple[str, dict | None]:
+    """更新用户邮箱，并同步客户端依赖的用户名字段"""
+    if email == new_email:
+        return "same_email", None
+
+    existing_user = get_user_by_email(email)
+    if not existing_user:
+        return "not_found", None
+
+    if get_user_by_email(new_email):
+        return "new_email_exists", None
+
+    updated_user = client.ht_server.users.find_one_and_update(
+        {"_id": existing_user["_id"]},
+        {
+            "$set": {
+                "email": new_email,
+                "NormalizedUserName": new_email,
+                "UserName": new_email,
+            }
+        },
+        return_document=ReturnDocument.AFTER
+    )
+
+    if not updated_user:
+        return "update_failed", None
+
+    return "success", updated_user
+
+
+def delete_user_account(email: str) -> dict | None:
+    """删除用户账号及其关联数据"""
+    user = get_user_by_email(email)
+    if not user:
+        return None
+
+    result = client.ht_server.users.delete_one({"_id": user["_id"]})
+    if result.deleted_count <= 0:
+        return None
+
+    user_id = str(user["_id"])
+    client.ht_server.GachaLog.delete_many({"user_id": user_id})
+    client.ht_server.verification_codes.delete_many({"email": email})
+    return user
 
 
 def get_users_with_search(query_text="", role=None, email=None, username=None, id=None, is_licensed=None) -> list:

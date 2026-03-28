@@ -5,6 +5,55 @@ from app.config import Config
 misc_bp = Blueprint("misc", __name__)
 
 
+def _get_client_ip() -> str:
+    """获取客户端 IP，优先取反向代理头。"""
+    forwarded_for = request.headers.get('X-Forwarded-For', '').strip()
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+
+    real_ip = request.headers.get('X-Real-IP', '').strip()
+    if real_ip:
+        return real_ip
+
+    return request.remote_addr or ''
+
+
+@misc_bp.route('/ip', methods=['GET'])
+def get_ip_information():
+    """获取当前网络 IP 信息。"""
+    return jsonify({
+        "retcode": 0,
+        "message": "OK",
+        "data": {
+            "ip": _get_client_ip(),
+            "division": ""
+        },
+        "l10nKey": None
+    })
+
+
+@misc_bp.route('/Statistics/Avatar/AvatarCollocation', methods=['GET'])
+def statistics_avatar_avatar_collocation():
+    """获取角色搭配统计，当前返回空列表。"""
+    return jsonify({
+        "retcode": 0,
+        "message": "OK",
+        "data": [],
+        "l10nKey": None
+    })
+
+
+@misc_bp.route('/Statistics/Weapon/WeaponCollocation', methods=['GET'])
+def statistics_weapon_weapon_collocation():
+    """获取武器搭配统计，当前返回空列表。"""
+    return jsonify({
+        "retcode": 0,
+        "message": "OK",
+        "data": [],
+        "l10nKey": None
+    })
+
+
 @misc_bp.route('/patch/hutao', methods=['GET'])
 def patch_hutao():
     """获取新版本信息"""
