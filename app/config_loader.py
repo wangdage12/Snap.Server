@@ -73,12 +73,28 @@ class ConfigLoader:
         return self.get('JWT.EXPIRATION_HOURS', 24)
     
     @property
+    def EMAIL_PROVIDER(self) -> str:
+        return self.get('EMAIL.PROVIDER', 'gmail')
+    
+    @property
     def EMAIL_GMAIL_USER(self) -> str:
         return self.get('EMAIL.GMAIL_USER')
     
     @property
     def EMAIL_APP_PASSWORD(self) -> str:
         return self.get('EMAIL.APP_PASSWORD')
+    
+    @property
+    def EMAIL_RESEND_API_KEY(self) -> str:
+        return self.get('EMAIL.RESEND_API_KEY')
+    
+    @property
+    def EMAIL_FROM_EMAIL(self) -> str:
+        return self.get('EMAIL.FROM_EMAIL')
+    
+    @property
+    def EMAIL_REPLY_TO(self) -> str:
+        return self.get('EMAIL.REPLY_TO')
     
     @property
     def RSA_PRIVATE_KEY_FILE(self) -> str:
