@@ -56,7 +56,11 @@ print("Keys generated.")
     "EXPIRATION_HOURS": 24
   },
   "EMAIL": {
-    "GMAIL_USER": "wdgwdg889@gmail.com",
+    "PROVIDER": "resend",
+    "FROM_EMAIL": "no-reply@example.com",
+    "REPLY_TO": "support@example.com",
+    "RESEND_API_KEY": "re_xxxxxxxxx",
+    "GMAIL_USER": "",
     "APP_PASSWORD": "",
     "APP_NAME": "WDG Snap Hutao",
     "OFFICIAL_WEBSITE": "https://htserver.wdg.cloudns.ch/",
@@ -78,6 +82,10 @@ print("Keys generated.")
 
 参数说明：
 
+> `EMAIL.PROVIDER` 设置为 `resend` 后，现有的验证码接口会自动通过 Resend 发送邮件；若设置为 `gmail`，则继续使用原有 Gmail SMTP 方式。
+>
+> 使用 Resend 前，请先在 Resend 控制台验证发信域名，并将 `EMAIL.FROM_EMAIL` 配置为该域名下的邮箱地址。
+
 | 参数 | 说明 |
 |------|------|
 | SECRET_KEY | 用于JWT签名的密钥，请设置为复杂字符串 |
@@ -89,8 +97,12 @@ print("Keys generated.")
 | SERVER.DEBUG | 是否启用Flask的调试模式 |
 | JWT.ALGORITHM | JWT签名算法 |
 | JWT.EXPIRATION_HOURS | JWT过期时间（小时） |
-| EMAIL.GMAIL_USER | 用于发送验证邮件的Gmail账号 |
-| EMAIL.APP_PASSWORD | Gmail应用专用密码 |
+| EMAIL.PROVIDER | 邮件服务提供商，可选值为 `gmail` 或 `resend` |
+| EMAIL.FROM_EMAIL | 发件人邮箱，使用 Resend 时必须为已验证域名下的完整邮箱地址，例如 `no-reply@example.com`，不能只填域名 |
+| EMAIL.REPLY_TO | 回复邮箱，可选 |
+| EMAIL.RESEND_API_KEY | Resend API Key，使用 Resend 发送时必填 |
+| EMAIL.GMAIL_USER | 用于发送验证邮件的 Gmail 账号，使用 Gmail 发送时必填 |
+| EMAIL.APP_PASSWORD | Gmail 应用专用密码，使用 Gmail 发送时必填 |
 | EMAIL.APP_NAME | 应用名称，用于邮件显示 |
 | EMAIL.OFFICIAL_WEBSITE | 官方网站地址，用于邮件中的链接 |
 | EMAIL.SUBJECT | 验证邮件的主题 |

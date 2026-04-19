@@ -109,29 +109,15 @@ def send_verification_email(email: str, code: str, ACTION_NAME="注册", EXPIRE_
 </body>
 </html>
         """
-        try:
-            SendEmailTool.send_email(
-                config_loader.EMAIL_GMAIL_USER,
-                config_loader.EMAIL_APP_PASSWORD,
-                email,
-                subject,
-                htmlbody,
-                app_name=APP_NAME,
-                body_type="html"
-            )
-            logger.info(f"HTML verification email sent to {email}, request_type: {REQUEST_TYPE}")
-        except Exception as e:
-            logger.error(f"Failed to send HTML verification email to {email}: {e}")
-            SendEmailTool.send_email(
-                config_loader.EMAIL_GMAIL_USER,
-                config_loader.EMAIL_APP_PASSWORD,
-                email,
-                subject,
-                textbody,
-                app_name=APP_NAME,
-                body_type="plain"
-            )
-            logger.info(f"Verification email sent to {email}, request_type: {REQUEST_TYPE}")
+        SendEmailTool.send_email(
+            email,
+            subject,
+            htmlbody,
+            app_name=APP_NAME,
+            body_type="html",
+            text_body=textbody,
+        )
+        logger.info(f"Verification email sent to {email}, request_type: {REQUEST_TYPE}")
         return True
     except Exception as e:
         logger.error(f"Failed to send email: {e}")
