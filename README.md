@@ -79,7 +79,6 @@ print("Keys generated.")
 
 | 参数 | 说明 |
 |------|------|
-
 | SECRET_KEY | 用于JWT签名的密钥，请设置为复杂字符串 |
 | MONGO_URI | MongoDB连接字符串 |
 | TIMEZONE | 服务器时区 |
@@ -91,7 +90,6 @@ print("Keys generated.")
 | JWT.EXPIRATION_HOURS | JWT过期时间（小时） |
 | EMAIL.PROVIDER | 邮件服务提供商，可选值为 `gmail` 或 `resend` |
 | EMAIL.FROM_EMAIL | 发件人邮箱，使用 Resend 时必须为已验证域名下的完整邮箱地址，例如 `no-reply@example.com`，不能只填域名 |
-
 | EMAIL.REPLY_TO | 回复邮箱，可选 |
 | EMAIL.RESEND_API_KEY | Resend API Key，使用 Resend 发送时必填 |
 | EMAIL.GMAIL_USER | 用于发送验证邮件的 Gmail 账号，使用 Gmail 发送时必填 |
